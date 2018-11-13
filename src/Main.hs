@@ -15,7 +15,7 @@ maxWordLength :: Int
 maxWordLength = 6
 
 maxGuesses :: Int
-maxGuesses = maxWordLength
+maxGuesses = 10
 
 newtype WordList =
   WordList [String]
