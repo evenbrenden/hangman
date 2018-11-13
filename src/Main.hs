@@ -9,10 +9,13 @@ import System.Random (randomRIO)
 import System.IO
 
 minWordLength :: Int
-minWordLength = 5
+minWordLength = 4
 
 maxWordLength :: Int
-maxWordLength = 9
+maxWordLength = 6
+
+maxGuesses :: Int
+maxGuesses = maxWordLength
 
 newtype WordList =
   WordList [String]
@@ -103,7 +106,7 @@ handleGuess puzzle guess = do
 gameOver :: Puzzle
          -> IO ()
 gameOver (Puzzle wordToGuess _ guessed) =
-  if (length guessed) > 7 then
+  if (length guessed) > maxGuesses then
     do putStrLn $ "You lose!"
        putStrLn $ "The word was " ++ (fmap toUpper wordToGuess)
        exitSuccess
