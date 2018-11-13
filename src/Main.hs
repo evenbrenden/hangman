@@ -122,9 +122,10 @@ gameOver puzzle@(Puzzle wordToGuess filledInSoFar guessed) =
 
 gameWin :: Puzzle
         -> IO ()
-gameWin (Puzzle _ filledInSoFar _) =
+gameWin (Puzzle wordToGuess filledInSoFar _) =
   if all isJust filledInSoFar then
       do putStrLn $ "Win!"
+         putStrLn $ "You got " ++ (fmap toUpper wordToGuess)
          exitSuccess
   else return ()
 
@@ -138,7 +139,7 @@ runGame puzzle = forever $ do
   guess <- getLine
   case guess of
     [c] -> handleGuess puzzle c >>= runGame
-    _ -> putStrLn $ "A single character plz"
+    _ -> putStrLn $ "A single character plz!"
 
 main :: IO ()
 main = do
