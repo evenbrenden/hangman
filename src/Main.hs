@@ -88,6 +88,13 @@ fillInCharacter (Puzzle word filledInSoFar s) c =
           zipWith (zipper c)
             word filledInSoFar
 
+numGuessesLeft :: Puzzle
+               -> Int
+numGuessesLeft puzzle = maxGuesses - (numIncorrectGuesses puzzle)
+  where
+    numIncorrectGuesses (Puzzle _ filledInSoFar guessed) =
+      length guessed - length (filter isJust filledInSoFar)
+
 handleGuess :: Puzzle
             -> Char
             -> IO Puzzle
@@ -101,12 +108,13 @@ handleGuess puzzle guess = do
       return (fillInCharacter puzzle guess)
     (False, _) -> do
       putStrLn $ "Fail!"
+      putStrLn $ show ((numGuessesLeft puzzle) - 1) ++ " guesses left"
       return (fillInCharacter puzzle guess)
 
 gameOver :: Puzzle
          -> IO ()
-gameOver (Puzzle wordToGuess _ guessed) =
-  if (length guessed) > maxGuesses then
+gameOver puzzle@(Puzzle wordToGuess filledInSoFar guessed) =
+  if (numGuessesLeft puzzle) == 0 then
     do putStrLn $ "You lose!"
        putStrLn $ "The word was " ++ (fmap toUpper wordToGuess)
        exitSuccess
