@@ -3,19 +3,16 @@ module Main where
 import Control.Monad (forever)
 import Data.Char (toLower, toUpper)
 import Data.Maybe (isJust)
-import Data.List (intersperse)
 import System.Exit (exitSuccess)
 import System.Random (randomRIO)
 import System.IO
+import Helpers
 
 minWordLength :: Int
 minWordLength = 4
 
 maxWordLength :: Int
 maxWordLength = 6
-
-maxGuesses :: Int
-maxGuesses = 10
 
 newtype WordList =
   WordList [String]
@@ -43,75 +40,12 @@ randomWord (WordList wl) = do
 randomWord' :: IO String
 randomWord' = gameWords >>= randomWord
 
-data Puzzle =
-  Puzzle String [Maybe Char] [Char]
-
-instance Show Puzzle
-  where
-    show (Puzzle _ discovered guesses) =
-      (intersperse ' ' $ fmap renderPuzzleChar discovered) ++ " " ++ (guessesString guesses)
-      where
-        guessesString x
-          | length x == 0 = ""
-          | otherwise = "(" ++ x ++ ")"
-
 freshPuzzle :: String
-            -> Puzzle
+            -> Helpers.Puzzle
 freshPuzzle word = (Puzzle word (nothings word) [])
   where nothings a = fmap (\x -> Nothing) a
 
-renderPuzzleChar :: (Maybe Char)
-                 -> Char
-renderPuzzleChar Nothing = '_'
-renderPuzzleChar (Just s) = s
-
-charInWord :: Puzzle
-           -> Char
-           -> Bool
-charInWord (Puzzle word _ _) guess = elem guess word
-
-alreadyGuessed :: Puzzle
-               -> Char
-               -> Bool
-alreadyGuessed (Puzzle _ _ guessed) guess = elem guess guessed
-
-fillInCharacter :: Puzzle
-                -> Char
-                -> Puzzle
-fillInCharacter (Puzzle word filledInSoFar s) c =
-  Puzzle word newFilledInSoFar (c : s)
-  where zipper guessed wordChar guessChar =
-          if wordChar == guessed
-          then Just wordChar
-          else guessChar
-        newFilledInSoFar =
-          zipWith (zipper c)
-            word filledInSoFar
-
-numGuessesLeft :: Puzzle
-               -> Int
-numGuessesLeft puzzle = maxGuesses - (numIncorrectGuesses puzzle)
-  where
-    numIncorrectGuesses (Puzzle _ filledInSoFar guessed) =
-      length guessed - length (filter isJust filledInSoFar)
-
-handleGuess :: Puzzle
-            -> Char
-            -> IO Puzzle
-handleGuess puzzle guess = do
-  case (charInWord puzzle guess, alreadyGuessed puzzle guess) of
-    (_, True) -> do
-      putStrLn $ "You already guessed " ++ [guess]
-      return puzzle
-    (True, _) -> do
-      putStrLn $ "Score!"
-      return (fillInCharacter puzzle guess)
-    (False, _) -> do
-      putStrLn $ "Fail!"
-      putStrLn $ show ((numGuessesLeft puzzle) - 1) ++ " guesses left"
-      return (fillInCharacter puzzle guess)
-
-gameOver :: Puzzle
+gameOver :: Helpers.Puzzle
          -> IO ()
 gameOver puzzle@(Puzzle wordToGuess filledInSoFar guessed) =
   if (numGuessesLeft puzzle) == 0 then
@@ -120,7 +54,7 @@ gameOver puzzle@(Puzzle wordToGuess filledInSoFar guessed) =
        exitSuccess
   else return ()
 
-gameWin :: Puzzle
+gameWin :: Helpers.Puzzle
         -> IO ()
 gameWin (Puzzle wordToGuess filledInSoFar _) =
   if all isJust filledInSoFar then
@@ -129,7 +63,7 @@ gameWin (Puzzle wordToGuess filledInSoFar _) =
          exitSuccess
   else return ()
 
-runGame :: Puzzle
+runGame :: Helpers.Puzzle
         -> IO ()
 runGame puzzle = forever $ do
   gameOver puzzle
